@@ -1,0 +1,181 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+void printArray(const vector<int>& arr){
+    for (int num : arr){
+        cout << num << " ";
+    }
+    cout << endl;
+}
+
+void bubbleSort(vector<int>& arr){
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - 1 - i; j++){
+            if (arr[j] > arr[j + 1]){
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+void insertionSort(vector<int>& arr){
+    int n = arr.size();
+    for (int i = 1; i < n; i++){
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key){
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void selectionSort(vector<int>& arr){
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++){
+        int minIndex = i;
+        for (int j = i + 1; j < n; j++){
+            if (arr[j] < arr[minIndex]){
+                minIndex = j;
+            }
+        }
+        swap(arr[i], arr[minIndex]);
+    }
+}
+
+void merge(vector<int>& arr, int left, int mid, int right){
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+    vector<int> L(n1);
+    vector<int> R(n2);
+
+    for (int i = 0; i < n1; i++) L[i] = arr[left + i];
+    for (int i = 0; i < n2; i++) R[i] = arr[mid + 1 + i];
+
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2){
+        if (L[i] <= R[j]){
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+    while (i < n1){
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+    while (j < n2){
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(vector<int>& arr, int left, int right){
+    if (left < right){
+        int mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+}
+
+int partition(vector<int>& arr, int low, int high){
+    int pivot = arr[high];
+    int i = low - 1;
+
+    for (int j = low; j < high; ++j){
+        if (arr[j] <= pivot){
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+void quickSort(vector<int>& arr, int low, int high){
+    if (low < high){
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+vector<int> generateData(int N, const string& condition){
+    vector<int> data(N);
+    for (int i = 0; i < N; i++){
+        data[i] = rand() % 10000;
+    }
+    if (condition == "sorted"){
+        sort(data.begin(), data.end());
+    } else if (condition == "reversed"){
+        sort(data.begin(), data.end(), greater<int>());
+    }
+    return data;
+}
+
+template <typename Func>
+long long measureTime (Func sortingFunc, vector<int>& data){
+    auto start = chrono::high_resolution_clock::now();
+    sortingFunc(data);
+    auto end = chrono::high_resolution_clock::now();
+    return chrono::duration_cast<chrono::microseconds>(end-start).count();
+}
+
+int main(){
+    vector<int> sizes = {10, 100, 500, 1000, 10000};
+    vector<string> conditions = {"random", "sorted", "reversed"};
+    vector<string> algorithms = {"Bubble Sort", "Insertion Sort", "Selection Sort", "Merge Sort", "Quick Sort"};
+
+    cout << setw(15) << "Algorithm"
+         << setw(20) << "Time Complexity"
+         << setw(10) << "N=10"
+         << setw(10) << "N=100"
+         << setw(10) << "N=500"
+         << setw(10) << "N=1000"
+         << setw(10) << "N=10000"
+         << endl;
+
+    for (const auto& condition : conditions){
+        cout << "\nCondition: " << condition << endl;
+        for (const auto& algorithm : algorithms){
+            cout << setw(15) << algorithm;
+            if (algorithm == "Bubble Sort"){
+                cout << setw(20) << "O(n^2)";
+            } else if (algorithm == "Insertion Sort"){
+                cout << setw(20) << "O(n^2)";
+            } else if (algorithm == "Selection Sort"){
+                cout << setw(20) << "O(n^2)";
+            } else if (algorithm == "Merge Sort"){
+                cout << setw(20) << "O(n log n)";
+            } else if (algorithm == "Quick Sort"){
+                cout << setw(20) << "O(n log n)";
+            }
+            for (int size : sizes){
+                vector<int> data = generateData(size, condition);
+                long long timeTaken;
+                if (algorithm == "Bubble Sort"){
+                    timeTaken = measureTime(bubbleSort, data);
+                } else if (algorithm == "Insertion Sort"){
+                    timeTaken = measureTime(insertionSort, data);
+                } else if (algorithm == "Selection Sort"){
+                    timeTaken = measureTime(selectionSort, data);
+                } else if (algorithm == "Merge Sort"){
+                    timeTaken = measureTime([&data](vector<int>& d){ mergeSort(d, 0, d.size() - 1); }, data);
+                } else if (algorithm == "Quick Sort") {
+                    timeTaken = measureTime([&data](vector<int>& d){ quickSort(d, 0, d.size() - 1); }, data);
+                }
+                cout << setw(10) << timeTaken;
+            }
+            cout << endl;
+        }
+    }
+    return 0;
+}
